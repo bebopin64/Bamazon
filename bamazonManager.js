@@ -2,6 +2,10 @@ var mysql = require("mysql");
 var inquirer = require("inquirer");
 var tableContent = "";
 var newStock = 0;
+var productName = "";
+var productDepartment = "";
+var productPrice = 0;
+var quantityStart = 0;
 
 var connection = mysql.createConnection({
 	host: "localhost",
@@ -90,7 +94,7 @@ function addInventory() {
 			type: "input",
 			message: "How many would you like to order?"
 		}).then(function(response) {
-			newStock = tableContent[answer.product - 1].stock_quantity + response.number;
+			newStock = parseInt(tableContent[answer.product - 1].stock_quantity) + parseInt(response.number);
 			id = answer.product;
 			console.log("newstock"+newStock+"\nid "+id);
 			connection.query("UPDATE products SET ? WHERE ?", [{
@@ -106,5 +110,38 @@ function addInventory() {
 }
 
 function addProduct() {
-	console.log("adding product");
+	inquirer.prompt({
+		name: "product",
+		type: "input",
+		message: "\nInput the product name of the new product."
+	}).then(function(answer) {
+		productName = answer.product;
+		inquirer.prompt({
+			name: "department",
+			type: "input",
+			message: "\nInput the department of the new product."
+		}).then(function(answer) {
+			productDepartment = answer.department;
+			inquirer.prompt({
+				name: "price",
+				type: "input",
+				message: "\nInput the price of the new product."
+			}).then(function(answer) {
+				productPrice = parseFloat(answer.price);
+				inquirer.prompt({
+					name: "quantity",
+					type: "input",
+					message: "\nInput the stock quantity of the new product."
+				}).then(function(answer) {
+					quantityStart = parseInt(answer.quantity);
+					connection.query("insert into products (product_name, department_name, price, stock_quantity) values (?,?,?,?)", 
+						[productName,productDepartment,productPrice,quantityStart],	
+						function(err, res) {});
+					getCurrent();
+					startPrompt();
+				})
+			})
+		})
+	})
 }
+
