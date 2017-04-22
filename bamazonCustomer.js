@@ -1,6 +1,7 @@
 var mysql = require("mysql");
 var inquirer = require("inquirer");
 var tableContent = "";
+var newStock = 0;
 
 var connection = mysql.createConnection({
 	host: "localhost",
@@ -14,6 +15,13 @@ connection.connect(function(err) {
 	if(err) throw err;
 	console.log("connection successful.  id: "+connection.threadId);
 });
+
+function getCurrent() {
+	connection.query("select * from products", function(err, res) {
+		tableContent = res;
+		if(err) throw err;
+	});
+}
 
 connection.query("select * from products", function(err, res) {
 	tableContent = res;
@@ -54,9 +62,11 @@ var purchasePrompt = function() {
 				}, {
   					item_id: id
 				}], function(err, res) {});
+				newStock = 0;
 				itemCost = tableContent[answer.product - 1].price;
 				purchaseCost = response.number * itemCost;
 				console.log("Your total purchase price is $"+purchaseCost);
+				getCurrent();
 				purchasePrompt();
 			}
 		});
